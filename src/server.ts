@@ -1,6 +1,12 @@
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
-import { callable, routeAgentRequest, type AgentContext } from "agents";
-import { convertToModelMessages, pruneMessages, streamText } from "ai";
+import { callable, routeAgentRequest } from "agents";
+import {
+  convertToModelMessages,
+  pruneMessages,
+  simulateStreamingMiddleware,
+  streamText,
+  wrapLanguageModel,
+} from "ai";
 import { createWorkersAI } from "workers-ai-provider";
 import { buildSystemPrompt } from "./agent/prompts";
 import { assertSafeMessage, latestUserText, parseWorkspaceProfile } from "./agent/validation";
@@ -16,18 +22,10 @@ const MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const MAX_CONTEXT_MESSAGES = 12;
 
 export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
-  private readonly bindings: Env;
-
   initialState: WorkspaceState = INITIAL_WORKSPACE_STATE;
   maxPersistedMessages = 80;
   hydrationByteBudget = 2 * 1024 * 1024;
-  chatRecovery = true;
   chatStreamStallTimeoutMs = 60_000;
-
-  constructor(context: AgentContext, env: Env) {
-    super(context, env);
-    this.bindings = env;
-  }
 
   onStart(): void {
     void this.sql`
@@ -113,10 +111,13 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
       }),
     );
 
-    const workersAI = createWorkersAI({ binding: this.bindings.AI });
+    const workersAI = createWorkersAI({ binding: this.env.AI });
     const result = streamText({
-      model: workersAI(MODEL_ID, {
-        sessionAffinity: this.sessionAffinity,
+      model: wrapLanguageModel({
+        model: workersAI(MODEL_ID, {
+          sessionAffinity: this.sessionAffinity,
+        }),
+        middleware: simulateStreamingMiddleware(),
       }),
       system: buildSystemPrompt(this.state.profile),
       messages: pruneMessages({
@@ -135,15 +136,26 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
+    try {
+      const url = new URL(request.url);
 
-    if (url.pathname === "/health") {
-      return Response.json({ status: "ok" });
+      if (url.pathname === "/health") {
+        return Response.json({ status: "ok" });
+      }
+
+      const agentResponse = await routeAgentRequest(request, env);
+      if (agentResponse) return agentResponse;
+
+      return Response.json({ error: "Not found" }, { status: 404 });
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          event: "request_failed",
+          path: new URL(request.url).pathname,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }),
+      );
+      return Response.json({ error: "Internal server error" }, { status: 500 });
     }
-
-    const agentResponse = await routeAgentRequest(request, env);
-    if (agentResponse) return agentResponse;
-
-    return new Response("Not found", { status: 404 });
   },
 } satisfies ExportedHandler<Env>;

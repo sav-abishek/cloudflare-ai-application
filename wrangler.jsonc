@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "engineering-codex-coach",
+  "name": "cloudflare-ai-application",
   "main": "src/server.ts",
   "compatibility_date": "2026-09-09",
   "compatibility_flags": ["nodejs_compat"],
@@ -9,9 +9,8 @@
     "remote": true,
   },
   "assets": {
-    "directory": "./public",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/agents/*"],
+    "run_worker_first": ["/agents/*", "/health"],
   },
   "durable_objects": {
     "bindings": [
@@ -29,5 +28,13 @@
   ],
   "observability": {
     "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+    },
   },
 }
