@@ -1,0 +1,8 @@
+{
+  "extends": "agents/tsconfig",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "types": ["node", "vite/client"]
+  },
+  "include": ["env.d.ts", "src", "test", "vite.config.ts", "vitest.config.ts"]
+}
