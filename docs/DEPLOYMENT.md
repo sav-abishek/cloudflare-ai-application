@@ -59,4 +59,12 @@ Never add the value to Git, `.env`, screenshots, logs, or `PROMPT_HISTORY.md`.
 
 ## Automated deployment later
 
-The first release should be deployed manually. After it works, create a narrowly scoped Cloudflare API token and store it in GitHub Actions secrets. Never use a full-account key. Add automatic deployment only after pull-request checks are consistently passing.
+This repository is connected to Cloudflare Builds. Use these production settings:
+
+- Production branch: `main`
+- Build command: leave blank
+- Deploy command: `pnpm run deploy`
+
+The deploy script runs all checks, builds both the Worker and browser application, and then deploys the generated output. The Worker name in Cloudflare and `wrangler.jsonc` must both be `cloudflare-ai-application`.
+
+Cloudflare manages the connection to GitHub, so a separate full-account key is not needed in this repository. If a future workflow needs a token, create a narrowly scoped token and store it as a protected secret. Never use a full-account key.

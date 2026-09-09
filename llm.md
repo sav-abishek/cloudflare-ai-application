@@ -52,6 +52,13 @@ pnpm run build
 
 If the user interface changed, also run the app and check the main journey in a browser.
 
+## Cloudflare deployment notes
+
+- The connected Worker is named `cloudflare-ai-application`. Keep that exact name in `wrangler.jsonc`.
+- Cloudflare Builds must use `pnpm run deploy` as its deploy command. This command checks and builds the project before Wrangler deploys it.
+- The project uses `agents` 0.22, `@cloudflare/ai-chat` 0.11, and `@modelcontextprotocol/sdk` 1.30. Upgrade these related packages together and test the full chat journey afterward.
+- The server uses simulated streaming because native remote Workers AI streaming repeated answer fragments during testing. Test for repeated text before changing this behaviour.
+
 ## How to document a change
 
 1. Add the real user prompt to `PROMPT_HISTORY.md` if AI helped with the change.
@@ -69,8 +76,7 @@ If the user interface changed, also run the app and check the main journey in a 
 
 ## Recommended next work
 
-1. Run the application locally with an authenticated remote Workers AI binding.
-2. Test profile persistence and two-turn chat manually.
-3. Add Turnstile before sharing the public URL widely.
-4. Add a small evaluation set that checks useful answers, required headings, and false claims.
-5. Deploy, record the demo, and update the final status in `docs/BUILD_LOG.md`.
+1. Add Turnstile before sharing the public URL widely.
+2. Add a small evaluation set that checks useful answers, required headings, and false claims.
+3. Add browser automation for the profile, chat, reload, and error journeys.
+4. Record a short demo that shows the application and Cloudflare resources.

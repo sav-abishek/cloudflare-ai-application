@@ -35,9 +35,33 @@ This file records what changed, why it changed, and what was checked.
 - The production dependency audit found no known vulnerabilities.
 - The static production interface was inspected in a browser. Layout, labels, focusable controls, safety notice, and responsive structure rendered correctly.
 
+## 2026-09-09 - Authenticated production review
+
+### Problems found and fixed
+
+- The connected Cloudflare build tried to deploy before Vite had created the browser files. The deployment command is now documented and configured to run the full checked build first.
+- The Worker name did not match the Worker connected to the GitHub repository. It now uses `cloudflare-ai-application` everywhere.
+- The Vite setup pointed Wrangler at a `public` folder that does not exist. Vite now creates and supplies the correct asset settings.
+- Older Agents packages caused the live Agent connection to fail. The Agents SDK and AI chat packages were upgraded together.
+- Workers AI streaming repeated parts of model answers during local remote-binding tests. The server now gets one complete model answer and streams it safely to the browser.
+- Chat headings could hide text that followed on the same line. The message display now keeps headings, paragraphs, and lists intact.
+
+### Production and user experience improvements
+
+- Added a `/health` endpoint for deployment checks.
+- Added sampled traces and structured error logs without recording chat text.
+- Added clearer project badges, capability cards, saving feedback, connection recovery, and mobile layout improvements.
+- Added the visible model label so reviewers can quickly see that Workers AI is used.
+
+### Verification completed
+
+- Formatting, linting, and TypeScript checks passed.
+- All 10 automated tests passed.
+- The full production bundle built successfully.
+- An authenticated Workers AI chat returned all four required answer sections without repeated text.
+- The project profile and full chat remained available after a browser reload.
+- The polished desktop interface was inspected in Chrome.
+
 ### Still to verify
 
-- Local browser behaviour with an authenticated Workers AI binding.
-- Live Cloudflare deployment and persistence test.
-
-The full local Agent could not start in the automated environment because the Workers AI remote binding requires Cloudflare authentication. No API token was requested or stored.
+- Cloudflare production deployment and the same journey on the public address.
