@@ -65,3 +65,20 @@ This file records what changed, why it changed, and what was checked.
 ### Still to verify
 
 - Cloudflare production deployment and the same journey on the public address.
+
+## 2026-09-09 - Product interface refinement
+
+### Work completed
+
+- Reworked the desktop shell so the project profile and conversation scroll independently. The whole page no longer jumps or drifts while someone is reviewing a long project.
+- Fixed the empty conversation view so it starts at the top instead of scrolling past its title.
+- Changed the welcome area into a compact two-column guide with clear example questions.
+- Added consistent Lucide icons to actions, capability labels, safety guidance, and loading feedback.
+- Kept the navy, white, and Cloudflare-orange visual system while reducing visual noise and keeping controls easy to scan.
+- Preserved the single-column layout for narrow screens and small devices.
+
+### Verification completed
+
+- The updated desktop screen was inspected in Chrome at a standard laptop size.
+- The example prompt buttons correctly fill and focus the message box.
+- Formatting, linting, TypeScript checks, all 10 tests, and the production build passed.
