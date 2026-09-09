@@ -1,7 +1,16 @@
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { useAgent } from "agents/react";
 import type { UIMessage } from "ai";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { EngineeringCodexAgent } from "../server";
 import {
   INITIAL_WORKSPACE_STATE,
@@ -55,42 +64,75 @@ function inlineText(value: string) {
 }
 
 function AssistantMessage({ text }: { text: string }) {
-  const blocks = text.split(/\n{2,}/).filter(Boolean);
+  const lines = text.split("\n");
+  const content: ReactNode[] = [];
+  let index = 0;
 
-  return (
-    <div className="assistant-content">
-      {blocks.map((block, blockIndex) => {
-        const lines = block.split("\n").filter(Boolean);
-        const heading = lines[0]?.match(/^#{1,3}\s+(.+)/);
+  while (index < lines.length) {
+    const line = lines[index]?.trim() ?? "";
 
-        if (heading) {
-          return <h2 key={`${block}-${blockIndex}`}>{inlineText(heading[1] ?? "")}</h2>;
-        }
+    if (!line) {
+      index += 1;
+      continue;
+    }
 
-        if (lines.every((line) => /^[-*]\s+/.test(line))) {
-          return (
-            <ul key={`${block}-${blockIndex}`}>
-              {lines.map((line, lineIndex) => (
-                <li key={`${line}-${lineIndex}`}>{inlineText(line.replace(/^[-*]\s+/, ""))}</li>
-              ))}
-            </ul>
-          );
-        }
+    const heading = line.match(/^#{1,3}\s+(.+)/);
+    if (heading) {
+      content.push(<h2 key={`heading-${index}`}>{inlineText(heading[1] ?? "")}</h2>);
+      index += 1;
+      continue;
+    }
 
-        if (lines.every((line) => /^\d+\.\s+/.test(line))) {
-          return (
-            <ol key={`${block}-${blockIndex}`}>
-              {lines.map((line, lineIndex) => (
-                <li key={`${line}-${lineIndex}`}>{inlineText(line.replace(/^\d+\.\s+/, ""))}</li>
-              ))}
-            </ol>
-          );
-        }
+    if (/^[-*]\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^[-*]\s+/.test(lines[index]?.trim() ?? "")) {
+        items.push((lines[index]?.trim() ?? "").replace(/^[-*]\s+/, ""));
+        index += 1;
+      }
+      content.push(
+        <ul key={`list-${index}`}>
+          {items.map((item, itemIndex) => (
+            <li key={`${item}-${itemIndex}`}>{inlineText(item)}</li>
+          ))}
+        </ul>,
+      );
+      continue;
+    }
 
-        return <p key={`${block}-${blockIndex}`}>{inlineText(block)}</p>;
-      })}
-    </div>
-  );
+    if (/^\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^\d+\.\s+/.test(lines[index]?.trim() ?? "")) {
+        items.push((lines[index]?.trim() ?? "").replace(/^\d+\.\s+/, ""));
+        index += 1;
+      }
+      content.push(
+        <ol key={`steps-${index}`}>
+          {items.map((item, itemIndex) => (
+            <li key={`${item}-${itemIndex}`}>{inlineText(item)}</li>
+          ))}
+        </ol>,
+      );
+      continue;
+    }
+
+    const paragraph: string[] = [];
+    while (index < lines.length) {
+      const nextLine = lines[index]?.trim() ?? "";
+      if (
+        !nextLine ||
+        /^#{1,3}\s+/.test(nextLine) ||
+        /^[-*]\s+/.test(nextLine) ||
+        /^\d+\.\s+/.test(nextLine)
+      ) {
+        break;
+      }
+      paragraph.push(nextLine);
+      index += 1;
+    }
+    content.push(<p key={`paragraph-${index}`}>{inlineText(paragraph.join(" "))}</p>);
+  }
+
+  return <div className="assistant-content">{content}</div>;
 }
 
 type ProfileEditorProps = {
@@ -107,6 +149,7 @@ function ProfileEditor({ profile, disabled, onSave }: ProfileEditorProps) {
   const [ciChecks, setCiChecks] = useState(profile.ciChecks.join("\n"));
   const [standards, setStandards] = useState(profile.standards.join("\n"));
   const [feedback, setFeedback] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setName(profile.name);
@@ -120,6 +163,7 @@ function ProfileEditor({ profile, disabled, onSave }: ProfileEditorProps) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback("");
+    setIsSaving(true);
 
     try {
       await onSave({
@@ -133,6 +177,8 @@ function ProfileEditor({ profile, disabled, onSave }: ProfileEditorProps) {
       setFeedback("Project profile saved.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "The profile could not be saved.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -220,8 +266,8 @@ function ProfileEditor({ profile, disabled, onSave }: ProfileEditorProps) {
         <span className="field-help">Use one standard per line.</span>
       </label>
 
-      <button className="button button-primary" type="submit" disabled={disabled}>
-        Save profile
+      <button className="button button-primary" type="submit" disabled={disabled || isSaving}>
+        {isSaving ? "Saving..." : "Save profile"}
       </button>
       {feedback && (
         <p className="form-feedback" role="status">
@@ -243,8 +289,14 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
   const [input, setInput] = useState("");
   const [notice, setNotice] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleOpen = useCallback(() => setConnected(true), []);
+  const handleOpen = useCallback(() => {
+    setConnected(true);
+    setNotice((current) =>
+      current === "The connection was interrupted. Please try again." ? "" : current,
+    );
+  }, []);
   const handleClose = useCallback(() => setConnected(false), []);
   const handleError = useCallback(() => {
     setConnected(false);
@@ -272,6 +324,11 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
   }, [messages]);
 
   const remainingCharacters = LIMITS.maxInputCharacters - input.length;
+
+  function chooseExample(prompt: string) {
+    setInput(prompt);
+    requestAnimationFrame(() => chatInputRef.current?.focus());
+  }
 
   async function saveProfile(profile: WorkspaceProfileInput) {
     await agent.call("updateProfile", [profile]);
@@ -320,13 +377,18 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Engineering Codex Coach home">
-          <span className="brand-mark">EC</span>
-          <span>
-            <strong>Engineering Codex Coach</strong>
-            <small>Built on Cloudflare</small>
-          </span>
-        </a>
+        <div className="brand-group">
+          <a className="brand" href="/" aria-label="Engineering Codex Coach home">
+            <span className="brand-mark" aria-hidden="true">
+              EC
+            </span>
+            <span>
+              <strong>Engineering Codex Coach</strong>
+              <small>Built on Cloudflare</small>
+            </span>
+          </a>
+          <span className="product-chip">AI readiness review</span>
+        </div>
 
         <div className="connection" aria-live="polite">
           <span className={connected ? "status-dot online" : "status-dot"} />
@@ -366,6 +428,13 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
               <p className="eyebrow">Workspace</p>
               <h1>{state.profile.name}</h1>
               <p>Ask about review readiness, CI failures, or safer delivery.</p>
+              <div className="profile-badges" aria-label="Current project profile">
+                <span>{state.profile.language || "Language not set"}</span>
+                <span>{state.profile.serviceType}</span>
+                <span className={`risk-badge risk-${state.profile.deploymentRisk}`}>
+                  {state.profile.deploymentRisk} risk
+                </span>
+              </div>
             </div>
             <button
               className="button button-danger"
@@ -380,9 +449,29 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
           <div className="messages" aria-live="polite">
             {messages.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon">✓</span>
-                <h2>Prepare your change with confidence</h2>
-                <p>Save the project profile, then start with one of these examples.</p>
+                <span className="empty-icon" aria-hidden="true">
+                  ✓
+                </span>
+                <p className="eyebrow">AI-assisted delivery review</p>
+                <h2>Ship with fewer surprises</h2>
+                <p>
+                  Add your project context once. Get a focused readiness assessment, required
+                  checks, and practical remediation steps whenever you need them.
+                </p>
+                <div className="capability-grid" aria-label="Assistant capabilities">
+                  <div>
+                    <strong>01</strong>
+                    <span>Assess risk</span>
+                  </div>
+                  <div>
+                    <strong>02</strong>
+                    <span>Check standards</span>
+                  </div>
+                  <div>
+                    <strong>03</strong>
+                    <span>Plan remediation</span>
+                  </div>
+                </div>
                 <div className="example-list">
                   {EXAMPLE_PROMPTS.map((prompt) => (
                     <button
@@ -390,7 +479,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                       key={prompt}
                       type="button"
                       disabled={!connected || isBusy}
-                      onClick={() => setInput(prompt)}
+                      onClick={() => chooseExample(prompt)}
                     >
                       {prompt}
                     </button>
@@ -415,7 +504,16 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                 );
               })
             )}
-            {isBusy && <p className="thinking">Reviewing the available context...</p>}
+            {isBusy && (
+              <div className="thinking" role="status">
+                <span className="thinking-dots" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                Reviewing the available context...
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -431,10 +529,11 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
               </label>
               <textarea
                 id="chat-input"
+                ref={chatInputRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
+                  if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
                     void submitMessage();
                   }
@@ -445,7 +544,10 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                 disabled={!connected || isBusy}
               />
               <div className="composer-footer">
-                <span>{remainingCharacters.toLocaleString()} characters left</span>
+                <div className="composer-meta">
+                  <span>{remainingCharacters.toLocaleString()} characters left</span>
+                  <span className="model-label">Llama 3.3 · Workers AI</span>
+                </div>
                 {isBusy ? (
                   <button className="button button-secondary" type="button" onClick={stop}>
                     Stop
