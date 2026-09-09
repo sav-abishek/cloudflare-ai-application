@@ -2,6 +2,21 @@ import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { useAgent } from "agents/react";
 import type { UIMessage } from "ai";
 import {
+  ArrowRight,
+  Cloud,
+  FolderOpen,
+  ListChecks,
+  LoaderCircle,
+  Save,
+  Send,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Square,
+  Trash2,
+  Wrench,
+} from "lucide-react";
+import {
   Fragment,
   useCallback,
   useEffect,
@@ -267,6 +282,11 @@ function ProfileEditor({ profile, disabled, onSave }: ProfileEditorProps) {
       </label>
 
       <button className="button button-primary" type="submit" disabled={disabled || isSaving}>
+        {isSaving ? (
+          <LoaderCircle className="button-icon spin" aria-hidden="true" />
+        ) : (
+          <Save className="button-icon" aria-hidden="true" />
+        )}
         {isSaving ? "Saving..." : "Save profile"}
       </button>
       {feedback && (
@@ -320,8 +340,10 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
   const isBusy = status === "submitted" || status === "streaming";
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length > 0 || isBusy) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [isBusy, messages]);
 
   const remainingCharacters = LIMITS.maxInputCharacters - input.length;
 
@@ -380,7 +402,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
         <div className="brand-group">
           <a className="brand" href="/" aria-label="Engineering Codex Coach home">
             <span className="brand-mark" aria-hidden="true">
-              EC
+              <Cloud />
             </span>
             <span>
               <strong>Engineering Codex Coach</strong>
@@ -408,6 +430,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                 maxLength={48}
               />
               <button className="button button-secondary" type="submit">
+                <FolderOpen className="button-icon" aria-hidden="true" />
                 Open
               </button>
             </div>
@@ -417,8 +440,11 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
           <ProfileEditor profile={state.profile} disabled={!connected} onSave={saveProfile} />
 
           <div className="safety-note">
-            <strong>Keep sensitive data out</strong>
-            <p>Do not paste passwords, keys, private code, personal data, or production logs.</p>
+            <ShieldAlert aria-hidden="true" />
+            <div>
+              <strong>Keep sensitive data out</strong>
+              <p>Do not paste passwords, keys, private code, personal data, or production logs.</p>
+            </div>
           </div>
         </aside>
 
@@ -442,6 +468,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
               onClick={clearWorkspace}
               disabled={!connected || isBusy}
             >
+              <Trash2 className="button-icon" aria-hidden="true" />
               Clear workspace
             </button>
           </div>
@@ -449,41 +476,47 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
           <div className="messages" aria-live="polite">
             {messages.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon" aria-hidden="true">
-                  ✓
-                </span>
-                <p className="eyebrow">AI-assisted delivery review</p>
-                <h2>Ship with fewer surprises</h2>
-                <p>
-                  Add your project context once. Get a focused readiness assessment, required
-                  checks, and practical remediation steps whenever you need them.
-                </p>
-                <div className="capability-grid" aria-label="Assistant capabilities">
-                  <div>
-                    <strong>01</strong>
-                    <span>Assess risk</span>
-                  </div>
-                  <div>
-                    <strong>02</strong>
-                    <span>Check standards</span>
-                  </div>
-                  <div>
-                    <strong>03</strong>
-                    <span>Plan remediation</span>
+                <div className="empty-intro">
+                  <span className="empty-icon" aria-hidden="true">
+                    <Sparkles />
+                  </span>
+                  <p className="eyebrow">AI-assisted delivery review</p>
+                  <h2>Ship with fewer surprises</h2>
+                  <p>
+                    Add project context once. Get a focused readiness assessment, required checks,
+                    and practical remediation steps.
+                  </p>
+                  <div className="capability-grid" aria-label="Assistant capabilities">
+                    <div>
+                      <ShieldCheck aria-hidden="true" />
+                      <span>Assess risk</span>
+                    </div>
+                    <div>
+                      <ListChecks aria-hidden="true" />
+                      <span>Check standards</span>
+                    </div>
+                    <div>
+                      <Wrench aria-hidden="true" />
+                      <span>Plan remediation</span>
+                    </div>
                   </div>
                 </div>
-                <div className="example-list">
-                  {EXAMPLE_PROMPTS.map((prompt) => (
-                    <button
-                      className="example-prompt"
-                      key={prompt}
-                      type="button"
-                      disabled={!connected || isBusy}
-                      onClick={() => chooseExample(prompt)}
-                    >
-                      {prompt}
-                    </button>
-                  ))}
+                <div className="empty-prompts">
+                  <p className="eyebrow">Start with an example</p>
+                  <div className="example-list">
+                    {EXAMPLE_PROMPTS.map((prompt) => (
+                      <button
+                        className="example-prompt"
+                        key={prompt}
+                        type="button"
+                        disabled={!connected || isBusy}
+                        onClick={() => chooseExample(prompt)}
+                      >
+                        <span>{prompt}</span>
+                        <ArrowRight aria-hidden="true" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -550,6 +583,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                 </div>
                 {isBusy ? (
                   <button className="button button-secondary" type="button" onClick={stop}>
+                    <Square className="button-icon" aria-hidden="true" />
                     Stop
                   </button>
                 ) : (
@@ -558,6 +592,7 @@ function WorkspaceApp({ workspaceId, onSwitchWorkspace }: WorkspaceAppProps) {
                     type="submit"
                     disabled={!connected || !input.trim()}
                   >
+                    <Send className="button-icon" aria-hidden="true" />
                     Review change
                   </button>
                 )}

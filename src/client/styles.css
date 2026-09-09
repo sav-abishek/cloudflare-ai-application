@@ -18,10 +18,17 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(circle at 85% 0%, rgba(244, 129, 32, 0.1), transparent 30rem), #f3f6fa;
 }
@@ -85,11 +92,12 @@ p {
 }
 
 .app-shell {
-  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 72px minmax(0, 1fr);
+  height: 100vh;
 }
 
 .topbar {
-  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -125,8 +133,13 @@ p {
   color: #101b31;
   background: linear-gradient(145deg, #ffb15c, #f48120);
   border-radius: 12px;
-  font-weight: 850;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.brand-mark svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.4;
 }
 
 .brand strong,
@@ -174,12 +187,15 @@ p {
 .workspace-layout {
   display: grid;
   grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  min-height: calc(100vh - 72px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar {
+  min-height: 0;
   padding: 1.35rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: #ffffff;
   border-right: 1px solid #dce3eb;
   box-shadow: 12px 0 34px rgba(30, 41, 59, 0.04);
@@ -257,6 +273,7 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.48rem;
   min-height: 42px;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -265,6 +282,13 @@ p {
   transition:
     transform 120ms ease,
     background 120ms ease;
+}
+
+.button-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  stroke-width: 2.2;
 }
 
 .button:not(:disabled):active {
@@ -300,6 +324,9 @@ p {
 }
 
 .safety-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
   margin-top: 1.25rem;
   padding: 0.9rem;
   color: #744210;
@@ -307,6 +334,13 @@ p {
   border: 1px solid #f8d69a;
   border-radius: 12px;
   font-size: 0.8rem;
+}
+
+.safety-note > svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 0.08rem;
+  flex: 0 0 auto;
 }
 
 .safety-note p {
@@ -318,7 +352,8 @@ p {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-width: 0;
-  height: calc(100vh - 72px);
+  min-height: 0;
+  height: 100%;
   background: radial-gradient(circle at 90% 5%, rgba(244, 129, 32, 0.08), transparent 28%), #f5f7fb;
 }
 
@@ -327,7 +362,7 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
-  padding: 1.25rem 1.6rem;
+  padding: 0.78rem 1.6rem;
   background: rgba(255, 255, 255, 0.88);
   border-bottom: 1px solid #dce3eb;
   backdrop-filter: blur(10px);
@@ -347,7 +382,7 @@ p {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  margin-top: 0.8rem;
+  margin-top: 0.58rem;
 }
 
 .profile-badges span {
@@ -380,18 +415,23 @@ p {
 }
 
 .messages {
+  min-height: 0;
   overflow-y: auto;
-  padding: 1.5rem max(1.25rem, calc((100% - 850px) / 2));
+  overscroll-behavior: contain;
+  padding: 1.5rem max(1.25rem, calc((100% - 1000px) / 2));
 }
 
 .empty-state {
-  max-width: 760px;
-  margin: 5vh auto 0;
-  padding: clamp(1.4rem, 4vw, 2.4rem);
-  background: rgba(255, 255, 255, 0.78);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 1fr);
+  align-items: start;
+  gap: clamp(1.4rem, 3vw, 2.4rem);
+  max-width: 980px;
+  margin: 1rem auto;
+  padding: clamp(1.35rem, 3vw, 2rem);
+  background: rgba(255, 255, 255, 0.84);
   border: 1px solid rgba(211, 221, 232, 0.9);
-  border-radius: 24px;
-  text-align: center;
+  border-radius: 18px;
   box-shadow: 0 22px 70px rgba(31, 48, 76, 0.08);
   backdrop-filter: blur(12px);
 }
@@ -401,12 +441,16 @@ p {
   place-items: center;
   width: 54px;
   height: 54px;
-  margin: 0 auto 1rem;
+  margin: 0 0 0.9rem;
   color: #ffffff;
   background: #f48120;
   border-radius: 18px;
-  font-size: 1.6rem;
-  font-weight: 900;
+}
+
+.empty-icon svg {
+  width: 25px;
+  height: 25px;
+  stroke-width: 2.2;
 }
 
 .empty-state h2 {
@@ -415,39 +459,47 @@ p {
   letter-spacing: -0.035em;
 }
 
-.empty-state > p {
+.empty-intro > p {
   max-width: 610px;
-  margin-right: auto;
-  margin-left: auto;
   color: #64748b;
   line-height: 1.6;
 }
 
-.empty-state > .eyebrow {
+.empty-intro > .eyebrow,
+.empty-prompts > .eyebrow {
   color: #c75f0d;
   line-height: 1.2;
+}
+
+.empty-prompts {
+  padding-left: clamp(1.2rem, 2.5vw, 2rem);
+  border-left: 1px solid #e2e8f0;
 }
 
 .capability-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.65rem;
-  margin: 1.5rem 0 0;
+  margin: 1.2rem 0 0;
 }
 
 .capability-grid div {
-  display: grid;
-  gap: 0.18rem;
-  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  padding: 0.58rem;
   background: #f7f9fc;
   border: 1px solid #e4eaf1;
   border-radius: 12px;
 }
 
-.capability-grid strong {
+.capability-grid svg {
+  width: 18px;
+  height: 18px;
+  margin: 0;
   color: #d96813;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  stroke-width: 2;
 }
 
 .capability-grid span {
@@ -458,14 +510,16 @@ p {
 
 .example-list {
   display: grid;
-  gap: 0.7rem;
-  margin-top: 1.35rem;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
 }
 
 .example-prompt {
-  position: relative;
-  padding: 0.9rem 1rem;
-  padding-right: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.72rem 0.85rem;
   color: #334155;
   background: #ffffff;
   border: 1px solid #d8e0e9;
@@ -477,14 +531,11 @@ p {
     transform 120ms ease;
 }
 
-.example-prompt::after {
-  content: "→";
-  position: absolute;
-  top: 50%;
-  right: 1rem;
+.example-prompt svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
   color: #d96813;
-  font-weight: 850;
-  transform: translateY(-50%);
 }
 
 .example-prompt:hover:not(:disabled) {
@@ -589,7 +640,7 @@ p {
 }
 
 .composer-area {
-  padding: 0.85rem max(1.25rem, calc((100% - 850px) / 2)) 1.2rem;
+  padding: 0.85rem max(1.25rem, calc((100% - 1000px) / 2)) 1.2rem;
   background: rgba(245, 247, 251, 0.94);
   border-top: 1px solid #dce3eb;
 }
@@ -610,7 +661,7 @@ p {
 }
 
 .composer textarea {
-  min-height: 70px;
+  min-height: 54px;
   padding: 0.2rem;
   border: 0;
   box-shadow: none;
@@ -665,12 +716,39 @@ p {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
+}
+
 @media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-shell {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    height: 72px;
+  }
+
   .workspace-layout {
     grid-template-columns: 1fr;
+    min-height: auto;
+    overflow: visible;
   }
 
   .sidebar {
+    overflow: visible;
     border-right: 0;
     border-bottom: 1px solid #dce3eb;
   }
@@ -678,6 +756,19 @@ p {
   .chat-panel {
     min-height: 820px;
     height: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .empty-state {
+    grid-template-columns: 1fr;
+  }
+
+  .empty-prompts {
+    padding-top: 1.2rem;
+    padding-left: 0;
+    border-top: 1px solid #e2e8f0;
+    border-left: 0;
   }
 }
 

@@ -25,6 +25,7 @@
     "@modelcontextprotocol/sdk": "1.30.0",
     "agents": "^0.22.0",
     "ai": "^6.0.197",
+    "lucide-react": "^1.43.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "workers-ai-provider": "^3.2.1",
