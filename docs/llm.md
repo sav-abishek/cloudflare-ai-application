@@ -20,13 +20,16 @@ The project is also a Cloudflare job-assignment submission. Every important requ
 
 - `src/server.ts`: Worker entry point and Agent logic.
 - `src/client/App.tsx`: user interface and Agent connection.
+- `src/client/ProfileEditor.tsx`: project templates and context form, loaded on demand.
+- `src/client/ReviewCard.tsx`: evidence board, filtering, feedback, and report export.
+- `src/client/AssistantMessage.tsx`: safe rendering of assistant text.
 - `src/shared/contracts.ts`: shared data rules and limits.
 - `src/agent/prompts.ts`: server-owned system prompt.
 - `src/agent/validation.ts`: server checks and rate limit logic.
 - `wrangler.jsonc`: Cloudflare bindings and deployment settings.
 - `docs/PROJECT_SPEC.md`: agreed scope and acceptance checks.
 - `docs/BUILD_LOG.md`: work completed and decisions made.
-- `PROMPT_HISTORY.md`: prompts used during AI-assisted development.
+- `docs/PROMPT_HISTORY.md`: prompts used during AI-assisted development.
 
 ## Rules for future work
 
@@ -61,7 +64,7 @@ If the user interface changed, also run the app and check the main journey in a 
 
 ## How to document a change
 
-1. Add the real user prompt to `PROMPT_HISTORY.md` if AI helped with the change.
+1. Add the real user prompt to `docs/PROMPT_HISTORY.md` if AI helped with the change.
 2. Add a short dated entry to `docs/BUILD_LOG.md`.
 3. Update the README or another guide if setup or behaviour changed.
 4. Record test results. Do not say something passed unless it was run.
@@ -72,11 +75,11 @@ If the user interface changed, also run the app and check the main journey in a 
 - The rate limit is per workspace, not per person or IP address.
 - Turnstile is planned but is not yet wired into the user interface.
 - Deployment requires the repository owner to sign in to Cloudflare.
-- Browser end-to-end tests are planned after the first deployed environment is available.
+- Browser end-to-end tests run locally in Chrome. The latest local changes still need the same journey on the deployed public address and on physical mobile devices.
 
 ## Recommended next work
 
 1. Add Turnstile before sharing the public URL widely.
 2. Add a small evaluation set that checks useful answers, required headings, and false claims.
-3. Add browser automation for the profile, chat, reload, and error journeys.
+3. Run the existing browser suite against a deployed staging address, then add physical-device and Safari coverage.
 4. Record a short demo that shows the application and Cloudflare resources.

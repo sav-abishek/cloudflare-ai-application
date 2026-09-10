@@ -45,7 +45,7 @@ Workers AI uses a binding, so no model API key belongs in the browser or reposit
 pnpm exec wrangler secret put SECRET_NAME
 ```
 
-Never add the value to Git, `.env`, screenshots, logs, or `PROMPT_HISTORY.md`.
+Never add the value to Git, `.env`, screenshots, logs, or `docs/PROMPT_HISTORY.md`.
 
 ## After deployment
 

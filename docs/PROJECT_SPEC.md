@@ -14,7 +14,7 @@ The project is intentionally aligned with Cloudflare's Developer Productivity wo
 | Workflow / coordination  | Cloudflare Worker and Cloudflare Agents SDK running on a Durable Object | The Agent validates input, retrieves context, invokes the model, streams output, and commits state. |
 | Chat or voice input      | React + TypeScript chat interface built with Vite                       | A user submits a change description and receives a streamed response.                               |
 | Memory or state          | Durable Object SQLite state through the Agents SDK                      | Project profile and chat memory survive a refresh and influence a later response.                   |
-| AI coding prompt history | `PROMPT_HISTORY.md` in the repository                                   | A chronological and sanitised record of actual development prompts.                                 |
+| AI coding prompt history | `docs/PROMPT_HISTORY.md`                                                | A chronological and sanitised record of actual development prompts.                                 |
 
 ## User journey
 
@@ -159,8 +159,9 @@ The server-owned system prompt must instruct the Agent to:
 │   └── THREAT_MODEL.md
 ├── .github/workflows/ci.yml
 ├── README.md
-├── PROMPT_HISTORY.md
-├── llm.md
+├── docs/
+│   ├── PROMPT_HISTORY.md
+│   └── llm.md
 ├── wrangler.jsonc
 └── package.json
 ```
@@ -195,7 +196,7 @@ The server-owned system prompt must instruct the Agent to:
 
 - Deploy to Cloudflare and validate the production URL.
 - Record a short demo.
-- Complete the real `PROMPT_HISTORY.md` without secrets or confidential data.
+- Complete the real `docs/PROMPT_HISTORY.md` without secrets or confidential data.
 - Submit the repository, live URL, and demo artifact.
 
 ## Acceptance criteria
@@ -206,7 +207,7 @@ The server-owned system prompt must instruct the Agent to:
 - [ ] Profile and conversation state persist across refresh and change a later response.
 - [ ] CI runs typecheck, lint, and tests on pull requests.
 - [ ] No credentials, keys, or confidential data exist in source control or logs.
-- [ ] `PROMPT_HISTORY.md` contains the actual AI-assisted development process.
+- [ ] `docs/PROMPT_HISTORY.md` contains the actual AI-assisted development process.
 - [ ] A reviewer can complete the demo in under three minutes.
 
 ## Demo script

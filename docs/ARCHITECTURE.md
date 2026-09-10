@@ -4,6 +4,8 @@
 
 The browser sends chat messages to one Cloudflare Agent. That Agent has its own durable storage. It reads the saved project profile, asks Llama 3.3 for a response, streams the answer back, and keeps the conversation for later.
 
+After successful inference, the Agent also saves the latest readiness review: profile timestamp, change description, risk, required checks, user evidence, and feedback. Checks are derived deterministically from the profile, so this needs no extra AI call. Callable methods validate evidence updates and reject stale review IDs. Profile changes make earlier reviews outdated. The optional review field keeps existing version-one workspaces compatible.
+
 ```text
 Browser chat
     |

@@ -82,3 +82,50 @@ This file records what changed, why it changed, and what was checked.
 - The updated desktop screen was inspected in Chrome at a standard laptop size.
 - The example prompt buttons correctly fill and focus the message box.
 - Formatting, linting, TypeScript checks, all 10 tests, and the production build passed.
+
+## 2026-09-10 - Actionable readiness workflow
+
+- Added editable Worker, API, and web templates, completeness and save-state feedback.
+- Added profile-based readiness checks after successful AI answers, with persisted user evidence and review feedback.
+- Added copy/download handoff, profile invalidation, server validation, and rejected direct client state writes.
+- Improved mobile context controls, focus, contrast, overflow, and retry visibility; new visitors receive separate workspace IDs.
+- Added assignment mapping and demo guide; retained prior uncommitted roadmap and prompt-history work.
+- Verified 15 unit tests, formatting, lint, type checks, generated bindings, and production build. A headless Chrome journey used real Workers AI and verified profile/evidence/feedback reload persistence, export, outdated status, responsive layouts, and no page errors. Screenshots and the test report are in ignored test-results/.
+- No deployment or commit was performed. The existing public demo is unchanged.
+- Final browser regressions also verified clipboard output, preservation of unsaved profile edits during feedback, rejection of forged state, 320/390/768/1024px layouts, and fresh-visitor workspace identity across reload. The fresh-visitor test caught and fixed a Suspense initialization loop; the app now shows an explicit workspace loading state.
+
+## 2026-09-10 - Complete frontend redesign
+
+- Replaced the entire visual system and app layout, using current Linear and Vercel design references and the installed frontend-design, Vercel guidelines, and web-perf skills.
+- Created distinct Change review, Evidence board, and Project context views with URL navigation, browser back/forward support, and retained form drafts.
+- Added a workspace switcher, quick guide, evidence filtering, completion progress, and responsive navigation. Retained all existing chat and durable-state actions.
+- Self-hosted the 24.8 KB Manrope variable font with its OFL license. Context and evidence components load on demand. No runtime dependencies were added.
+- Accessibility review covered loaded views and empty states; corrected secondary-text contrast. Browser screenshots are in ignored test-results/redesign-*.png.
+- Final browser journey passed: templates, preserved drafts across views, saved profile reload, example prompts, real Workers AI, evidence filtering and persistence, clipboard export, feedback persistence, dialog Escape, all three views at 320/390/768/1024/1440px, outdated-review handling, fresh-visitor reload, and no page errors.
+- Final verification: all 15 tests, formatting, lint, TypeScript, generated bindings, production build, and diff checks passed. Automated WCAG A/AA audits reported no violations in populated Review/Context/Evidence views and empty Review/Evidence views; manual screenshot review covered desktop and mobile.
+- Performance review: production entry JavaScript is 143.04 KB gzip, CSS 6.78 KB gzip; the editor and evidence chunks load separately (2.13 KB and 2.26 KB gzip). Production field Web Vitals were not measured. No deployment or commit was performed.
+
+## 2026-09-10 - Scrolling regression and laptop/mobile validation
+
+- Reproduced the reported failure: the laptop grid's implicit minimum height expanded the workspace beyond the window, where the outer shell clipped it. Earlier horizontal-overflow checks did not validate vertical scrolling.
+- Constrained grid rows and workspace height; made scrolling regions keyboard accessible. Kept the chat composer reachable on short mobile screens. Enabled the mobile browser viewport to resize with its keyboard where supported.
+- Replaced ancestor-scrolling behavior with conversation-only scrolling. New messages follow the bottom until the reader scrolls up; viewport resizing preserves that intent. Tested the completed-review transition from laptop to a 390 × 600 viewport.
+- Retained evidence drafts through filtering and view changes. Warn before discarding them through workspace switching or a new review. Enabled the SDK's explicit server cancellation option for Stop.
+- Added Playwright as a development dependency and documented `pnpm run test:browser`. Excluded generated reports from Vite watching after Windows reported a file-lock error. A later dev-server restart interrupted one run; the full suite was rerun successfully against a fresh server.
+
+### Browser verification
+
+All **11 Playwright scenarios passed** in installed Chrome against the local Cloudflare development server:
+
+| Area                      | Verified behavior                                                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laptop and mobile layouts | All three views at 1366 × 768, 1280 × 720, 390 × 844, 360 × 640, 390 × 600, and 320 × 568; no horizontal overflow                                                                                  |
+| Scrolling                 | Mouse wheel, keyboard PageDown/Home, mobile touch swipe, conversation history, bottom controls, laptop sidebars, and viewport resizing                                                             |
+| Navigation and context    | Example prompts, multiline input, templates, invalid profile rejection, deduplication, save/reload, back/forward, dialogs, workspace switching, and reset confirmation                             |
+| Live AI and evidence      | Real Workers AI response, required answer sections, evidence save/clear/filter, retained drafts, readiness changes, clipboard, Markdown download, feedback/reload, stale reviews, and reset        |
+| Recovery                  | Controlled model failure and retry; streamed text without pulling readers from earlier messages; Stop sends a cancellation frame; connection loss disables send, retains the draft, and reconnects |
+
+- The live integration scenario uses real Workers AI and Durable Object state. Long chat histories, model failures, and incremental response frames use deterministic fixtures to keep inference use low.
+- Automated WCAG A/AA checks found no violations in the three views at laptop and mobile widths; no uncaught page errors were observed in that audit. Screenshots were inspected for laptop chat, mobile chat, and evidence controls. Generated reports remain in ignored `test-results/` and `playwright-report/`.
+- Binding generation, formatting, lint, strict TypeScript, all **15 unit tests**, production build, and diff checks passed. The entry bundle is approximately 143 KB gzip; Vite reports its standard warning because uncompressed entry JavaScript is just over 500 KB.
+- Coverage is Chrome on Windows with mobile viewport/touch emulation. Physical iOS/Android keyboard behavior, Safari, and the deployed public application were not tested in this pass. No deployment or commit was performed.
