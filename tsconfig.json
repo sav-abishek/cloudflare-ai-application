@@ -4,5 +4,12 @@
     "noUncheckedIndexedAccess": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["env.d.ts", "src", "test", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "env.d.ts",
+    "src",
+    "test",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
 }

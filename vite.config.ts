@@ -5,4 +5,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [agents(), react(), cloudflare()],
+  server: {
+    watch: { ignored: ["**/test-results/**", "**/playwright-report/**"] },
+  },
 });
