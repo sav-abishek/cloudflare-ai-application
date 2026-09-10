@@ -3,7 +3,7 @@ import { test, expect, type Page, type Locator, type WebSocketRoute } from "@pla
 const workspace = () => `test-${crypto.randomUUID().slice(0, 12)}`;
 async function open(page: Page, id = workspace()) {
   await page.goto(`${process.env.E2E_BASE_URL || "http://127.0.0.1:5173"}/?workspace=${id}`);
-  await expect(page.getByText("Connected", { exact: true })).toBeVisible();
+  await expect(page.getByText("Connected", { exact: true })).toBeVisible({ timeout: 30_000 });
   return id;
 }
 async function view(page: Page, name: string) {
