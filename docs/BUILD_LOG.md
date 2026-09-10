@@ -129,3 +129,11 @@ All **11 Playwright scenarios passed** in installed Chrome against the local Clo
 - Automated WCAG A/AA checks found no violations in the three views at laptop and mobile widths; no uncaught page errors were observed in that audit. Screenshots were inspected for laptop chat, mobile chat, and evidence controls. Generated reports remain in ignored `test-results/` and `playwright-report/`.
 - Binding generation, formatting, lint, strict TypeScript, all **15 unit tests**, production build, and diff checks passed. The entry bundle is approximately 143 KB gzip; Vite reports its standard warning because uncompressed entry JavaScript is just over 500 KB.
 - Coverage is Chrome on Windows with mobile viewport/touch emulation. Physical iOS/Android keyboard behavior, Safari, and the deployed public application were not tested in this pass. No deployment or commit was performed.
+
+## 2026-09-10 - Cloudflare release
+
+- Deployed the checked Worker and static assets to `https://cloudflare-ai-application.abishekvinodh18.workers.dev`.
+- Release version: `9beef058-83ca-4220-ac37-6078b537f8cb`.
+- The public `/health` endpoint returned `{"status":"ok"}` and the public page served the current rebuilt client asset.
+- The local validation suite passed before deployment: formatting, lint, strict TypeScript, 15 unit tests, and production build.
+- A complete public browser run began successfully, including the 1366 × 768 scenario. Later scenarios intermittently failed to establish a new Agent connection after several fresh test workspaces. Re-running an affected responsive scenario by itself passed. This is recorded as a remote capacity/startup validation gap, not as a full public browser-suite pass.

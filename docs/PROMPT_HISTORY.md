@@ -169,8 +169,30 @@ The browser suite covers project templates and validation; keyboard, mouse-wheel
 
 ## Supporting artefacts
 
-- [Assignment review and demo guide](docs/ASSIGNMENT_REVIEW.md)
-- [Build and verification log](docs/BUILD_LOG.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Project specification](docs/PROJECT_SPEC.md)
-- [Threat model](docs/THREAT_MODEL.md)
+- [Assignment review and demo guide](ASSIGNMENT_REVIEW.md)
+- [Build and verification log](BUILD_LOG.md)
+- [Architecture](ARCHITECTURE.md)
+- [Project specification](PROJECT_SPEC.md)
+- [Threat model](THREAT_MODEL.md)
+
+---
+
+## 8. Release and reviewer documentation
+
+### User instruction
+
+> Deploy the application to cloudflare and make atomic changes and commit each of them separately. Maintain the commit tag format as mentioned earlier or check other commits if you want to see how it has been done.
+
+> Update read me to the latest changes, put in the link of public access there and a detail of what this application intends to do and the features it provides. Hyperlink to the appropriate documentations as well. Give me context on how much for the assignment it covers and what future implementations can be made as a future roadmap.
+
+### Release actions
+
+- Reviewed the existing commit convention and created focused `feat:`, `chore:`, `fix:`, and `docs:` commits.
+- Ran the required formatting, lint, TypeScript, unit-test, and production-build checks.
+- Ran a Wrangler dry run before uploading the generated Worker and assets.
+- Deployed release version `9beef058-83ca-4220-ac37-6078b537f8cb` to [the public application](https://cloudflare-ai-application.abishekvinodh18.workers.dev).
+- Verified the public health endpoint and current client asset.
+
+### Release evidence and limit
+
+The full local browser suite passed. During a complete remote browser run, several newly created Agent workspaces eventually failed to connect; an isolated rerun of an affected responsive scenario passed. This is documented as a remote startup/capacity validation gap rather than described as a complete public end-to-end pass.
