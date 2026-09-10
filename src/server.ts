@@ -1,5 +1,7 @@
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
-import { callable, routeAgentRequest } from "agents";
+import { callable, routeAgentRequest, type Connection } from "agents";
+import { z } from "zod";
+import { createReview, recordEvidence } from "./shared/readiness";
 import {
   convertToModelMessages,
   pruneMessages,
@@ -36,7 +38,8 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
     `;
   }
 
-  validateStateChange(nextState: WorkspaceState): void {
+  validateStateChange(nextState: WorkspaceState, source: Connection | "server"): void {
+    if (source !== "server") throw new Error("Use the workspace actions to update state.");
     workspaceStateSchema.parse(nextState);
   }
 
@@ -71,6 +74,28 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
 
     this.setState(nextState);
     return nextState;
+  }
+
+  @callable()
+  updateEvidence(input: unknown): WorkspaceState {
+    if (this.state.review?.profileUpdatedAt !== this.state.profile.updatedAt) {
+      throw new Error("The project profile has changed. Run a new review first.");
+    }
+    const review = recordEvidence(this.state.review, input);
+    this.setState({ ...this.state, review });
+    return this.state;
+  }
+
+  @callable()
+  reviewFeedback(input: unknown): WorkspaceState {
+    const feedback = z
+      .object({ reviewId: z.string().uuid(), value: z.enum(["helpful", "not-helpful"]) })
+      .parse(input);
+    if (!this.state.review || this.state.review.id !== feedback.reviewId)
+      throw new Error("Review no longer available.");
+    this.setState({ ...this.state, review: { ...this.state.review, feedback: feedback.value } });
+    console.log(JSON.stringify({ event: "review_feedback", value: feedback.value }));
+    return this.state;
   }
 
   @callable()
@@ -112,6 +137,7 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
     );
 
     const workersAI = createWorkersAI({ binding: this.env.AI });
+    const profile = this.state.profile;
     const result = streamText({
       model: wrapLanguageModel({
         model: workersAI(MODEL_ID, {
@@ -119,7 +145,7 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
         }),
         middleware: simulateStreamingMiddleware(),
       }),
-      system: buildSystemPrompt(this.state.profile),
+      system: buildSystemPrompt(profile),
       messages: pruneMessages({
         messages: await convertToModelMessages(this.messages.slice(-MAX_CONTEXT_MESSAGES)),
         toolCalls: "before-last-2-messages",
@@ -128,6 +154,13 @@ export class EngineeringCodexAgent extends AIChatAgent<Env, WorkspaceState> {
       maxOutputTokens: 1_200,
       temperature: 0.2,
       abortSignal: options?.abortSignal,
+      onFinish: ({ text: answer, finishReason }) => {
+        if (!answer.trim() || finishReason !== "stop" || options?.abortSignal?.aborted) return;
+        // Discard results if the profile was changed or reset while inference ran.
+        if (JSON.stringify(this.state.profile) !== JSON.stringify(profile)) return;
+        this.setState({ ...this.state, review: createReview(profile, text) });
+        console.log(JSON.stringify({ event: "review_created", requestId }));
+      },
     });
 
     return result.toUIMessageStreamResponse();

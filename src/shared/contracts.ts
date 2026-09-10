@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { reviewSchema, type ReadinessReview } from "./readiness";
 
 export const LIMITS = {
   maxInputCharacters: 8_000,
@@ -30,11 +31,13 @@ export const workspaceStateSchema = z.object({
     updatedAt: z.string().datetime().nullable(),
   }),
   schemaVersion: z.literal(1),
+  review: reviewSchema.nullable().optional(),
 });
 
 export type WorkspaceState = {
   profile: WorkspaceProfile;
   schemaVersion: 1;
+  review?: ReadinessReview | null;
 };
 
 export const EMPTY_PROFILE: WorkspaceProfile = {
